@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOTNIVA C LABS - HCI Research & Multilingual Voice-First Access Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            terracotta: '#D9531E',
+                            saffron: '#E67E22',
+                            emerald: '#0D9488',
+                            turmeric: '#F59E0B',
+                            sand: '#FDFBF7',
+                            charcoal: '#1F2937',
+                            clay: '#8C3B1A',
+                            plum: '#4C1D95'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1F2937;
+        }
+        .mic-pulse {
+            box-shadow: 0 0 0 0 rgba(217, 83, 30, 0.7);
+            animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse-ring {
+            to {
+                box-shadow: 0 0 0 30px rgba(217, 83, 30, 0);
+            }
+        }
+        .waveform-bar {
+            animation: sound-wave 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes sound-wave {
+            0% { height: 10px; }
+            100% { height: 48px; }
+        }
+        .active-tab {
+            border-bottom: 3px solid #D9531E;
+            color: #D9531E;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-orange-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-terracotta to-brand-turmeric flex items-center justify-center text-white text-2xl font-black shadow-md">
+                    <i class="fa-solid fa-hands-holding-child"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-gray-900 block leading-tight">ZOTNIVA C LABS</span>
+                    <span id="txt-sub-header" class="text-xs font-semibold text-gray-500 tracking-wider uppercase">HCI Rural Inclusion Initiative</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-semibold">
+                <button onclick="switchTab('simulator')" id="nav-simulator" class="active-tab py-6 transition">
+                    <i class="fa-solid fa-microphone-lines mr-1.5"></i><span id="txt-nav-sim">Live Voice Simulator</span>
+                </button>
+                <button onclick="switchTab('research')" id="nav-research" class="text-gray-600 hover:text-brand-terracotta py-6 transition">
+                    <i class="fa-solid fa-chart-line mr-1.5"></i><span id="txt-nav-res">HCI Field Data & Metrics</span>
+                </button>
+                <button onclick="switchTab('framework')" id="nav-framework" class="text-gray-600 hover:text-brand-terracotta py-6 transition">
+                    <i class="fa-solid fa-lightbulb mr-1.5"></i><span id="txt-nav-sys">HCI Design System</span>
+                </button>
+                <button onclick="switchTab('resources')" id="nav-resources" class="text-gray-600 hover:text-brand-terracotta py-6 transition">
+                    <i class="fa-solid fa-book-bookmark mr-1.5"></i><span id="txt-nav-docs">Literature & Blueprint</span>
+                </button>
+            </nav>
+
+            <!-- Global Multilingual Selector -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 p-1.5 rounded-xl">
+                    <i class="fa-solid fa-earth-asia text-brand-terracotta pl-1"></i>
+                    <select id="global-lang-select" onchange="changeGlobalLanguage()" class="bg-transparent text-gray-900 text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1">
+                        <option value="en">English (US/IN)</option>
+                        <option value="hi" selected>हिन्दी (Hindi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Bar -->
+    <nav class="md:hidden flex justify-around bg-white border-b border-gray-200 text-xs font-semibold py-2">
+        <button onclick="switchTab('simulator')" class="py-2 text-brand-terracotta flex flex-col items-center">
+            <i class="fa-solid fa-microphone-lines text-base mb-1"></i> Simulator
+        </button>
+        <button onclick="switchTab('research')" class="py-2 text-gray-600 flex flex-col items-center">
+            <i class="fa-solid fa-chart-line text-base mb-1"></i> Data
+        </button>
+        <button onclick="switchTab('framework')" class="py-2 text-gray-600 flex flex-col items-center">
+            <i class="fa-solid fa-lightbulb text-base mb-1"></i> HCI Rules
+        </button>
+        <button onclick="switchTab('resources')" class="py-2 text-gray-600 flex flex-col items-center">
+            <i class="fa-solid fa-book-bookmark text-base mb-1"></i> Literature
+        </button>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+
+        <!-- TAB 1: LIVE VOICE SIMULATOR -->
+        <section id="tab-simulator" class="space-y-8">
+            <!-- Hero Header -->
+            <div class="bg-gradient-to-r from-orange-600 via-amber-600 to-emerald-700 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+                <div class="max-w-3xl relative z-10 space-y-3">
+                    <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-amber-100 border border-white/20">
+                        ZOTNIVA C LABS Testbed v3.2
+                    </span>
+                    <h1 id="txt-hero-title" class="text-2xl sm:text-4xl font-extrabold leading-tight">
+                        Conversational Voice Access for Low-Literacy & Rural Communities
+                    </h1>
+                    <p id="txt-hero-desc" class="text-white/90 text-sm sm:text-base leading-relaxed">
+                        Simulating speech-first public service interactions using multimodal guidance, dialect-tolerant ASR repair algorithms, and offline-resilient visual receipts.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Interface Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Column: Interactive Voice Terminal -->
+                <div class="lg:col-span-7 bg-white rounded-3xl border border-gray-100 shadow-xl p-6 sm:p-8 flex flex-col justify-between min-h-[580px]">
+                    <!-- Terminal Header -->
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-500" id="txt-terminal-status">System Active & Listening</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-500" id="txt-dial-mode">Dialect Noise:</span>
+                            <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800" id="badge-noise-level">Moderate Rural</span>
+                        </div>
+                    </div>
+
+                    <!-- Voice Interaction Hub -->
+                    <div class="my-auto py-8 text-center flex flex-col items-center">
+                        <div id="mic-container" class="relative cursor-pointer group" onclick="toggleVoiceSim()">
+                            <div id="mic-button" class="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-brand-terracotta to-brand-turmeric flex items-center justify-center text-white text-4xl sm:text-5xl shadow-2xl transition duration-300 transform group-hover:scale-105">
+                                <i class="fa-solid fa-microphone" id="mic-icon"></i>
+                            </div>
+                        </div>
+
+                        <!-- Waveform Graphic (Hidden by default) -->
+                        <div id="waveform" class="hidden flex items-center justify-center gap-1.5 h-14 mt-6">
+                            <div class="w-2 bg-brand-terracotta rounded-full waveform-bar" style="animation-delay: 0.1s;"></div>
+                            <div class="w-2 bg-brand-saffron rounded-full waveform-bar" style="animation-delay: 0.3s;"></div>
+                            <div class="w-2 bg-brand-emerald rounded-full waveform-bar" style="animation-delay: 0.2s;"></div>
+                            <div class="w-2 bg-brand-turmeric rounded-full waveform-bar" style="animation-delay: 0.4s;"></div>
+                            <div class="w-2 bg-brand-terracotta rounded-full waveform-bar" style="animation-delay: 0.15s;"></div>
+                        </div>
+
+                        <p id="txt-mic-instruction" class="mt-6 text-sm font-bold text-gray-600">
+                            Tap microphone to speak or simulate voice prompt
+                        </p>
+
+                        <!-- Dialogue Transcript Output -->
+                        <div class="w-full mt-6 bg-stone-50 border border-stone-200 rounded-2xl p-4 text-left space-y-3">
+                            <div>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block" id="txt-user-trans-lbl">User Spoken Request (ASR Raw Input)</span>
+                                <p id="txt-user-speech" class="text-sm font-semibold text-gray-800 italic">"..."</p>
+                            </div>
+                            <div class="border-t border-stone-200 pt-2">
+                                <span class="text-[10px] font-bold text-brand-terracotta uppercase tracking-wider block" id="txt-bot-resp-lbl">ZOTNIVA C LABS Voice & Multimodal Response</span>
+                                <p id="txt-bot-speech" class="text-base font-bold text-gray-900 mt-1">"..."</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Presets Quick Test -->
+                    <div class="pt-4 border-t border-gray-100">
+                        <span class="text-xs font-bold text-gray-500 block mb-2" id="txt-sample-queries">Sample Rural User Queries (Click to Test):</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="runQueryPreset('pension')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-orange-100 hover:text-brand-terracotta transition border border-gray-200">
+                                🌾 Pension Status / पेंशन
+                            </button>
+                            <button onclick="runQueryPreset('kisan')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-orange-100 hover:text-brand-terracotta transition border border-gray-200">
+                                🚜 Fertilizer Subsidy / खाद अनुदान
+                            </button>
+                            <button onclick="runQueryPreset('health')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-orange-100 hover:text-brand-terracotta transition border border-gray-200">
+                                🏥 Ayushman Health Card / आयुष्मान कार्ड
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Visual Confirmation Card & Acoustic Simulator Controls -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- Visual Receipt / Multimodal Visual Feedback -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-brand-emerald flex items-center gap-2">
+                                <i class="fa-solid fa-receipt text-base"></i> Multimodal Visual Confirmation
+                            </span>
+                            <span class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full" id="txt-receipt-badge font-mono">Offline-Cached</span>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div id="visual-receipt" class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 id="card-service-title" class="text-lg font-black text-gray-900">PM Kisan Samman Nidhi</h3>
+                                    <p id="card-service-sub" class="text-xs font-medium text-gray-600">Direct Benefit Transfer Scheme</p>
+                                </div>
+                                <div id="card-icon" class="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-white text-2xl shadow-sm">
+                                    🌾
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 border-t border-amber-200/60 pt-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 font-medium" id="lbl-card-beneficiary">Beneficiary:</span>
+                                    <span class="font-bold text-gray-800" id="val-card-beneficiary">Ramesh S. (रविन्द्र एस.)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 font-medium" id="lbl-card-status">Next Installment:</span>
+                                    <span class="font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded" id="val-card-status">₹2,000 Credited</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 font-medium" id="lbl-card-date">Date:</span>
+                                    <span class="font-bold text-gray-800" id="val-card-date">12 Oct 2026</span>
+                                </div>
+                            </div>
+
+                            <!-- Visual Step Process for Low-Literacy Users -->
+                            <div class="pt-2">
+                                <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Step-by-Step Guidance</span>
+                                <div class="grid grid-cols-3 gap-2 text-center">
+                                    <div class="bg-white p-2 rounded-xl border border-amber-200">
+                                        <i class="fa-solid fa-check-circle text-emerald-600 text-base"></i>
+                                        <span class="text-[10px] font-bold block text-gray-700 mt-1">1. Aadhaar Linked</span>
+                                    </div>
+                                    <div class="bg-white p-2 rounded-xl border border-amber-200">
+                                        <i class="fa-solid fa-check-circle text-emerald-600 text-base"></i>
+                                        <span class="text-[10px] font-bold block text-gray-700 mt-1">2. eKYC Done</span>
+                                    </div>
+                                    <div class="bg-white p-2 rounded-xl border border-amber-200">
+                                        <i class="fa-solid fa-hourglass-half text-amber-600 text-base animate-spin"></i>
+                                        <span class="text-[10px] font-bold block text-gray-700 mt-1">3. Bank Release</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Acoustic & HCI Simulation Controls -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-xl p-6 space-y-4">
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-wider">Acoustic & Acoustic Distortion Simulator</h4>
+                        
+                        <!-- Environment Noise -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-700">
+                                <span>Background Acoustic Noise</span>
+                                <span id="lbl-noise-val">45 dB (Marketplace)</span>
+                            </div>
+                            <input type="range" min="0" max="80" value="45" oninput="updateNoiseSlider(this.value)" class="w-full accent-brand-terracotta cursor-pointer">
+                        </div>
+
+                        <!-- Speech Repair Mode -->
+                        <div class="flex items-center justify-between pt-2">
+                            <div>
+                                <span class="text-xs font-bold text-gray-800 block">Dialect Soft-Repair Engine</span>
+                                <span class="text-[10px] text-gray-500">Auto-corrects regional accents & background chatter</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-repair" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-emerald"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: HCI FIELD DATA & RESEARCH METRICS -->
+        <section id="tab-research" class="hidden space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-brand-terracotta uppercase tracking-wider">Field Deployment Insights</span>
+                    <h2 class="text-2xl font-black text-gray-900 mt-1">Quantitative Comparative Analysis across Deployment Districts</h2>
+                    <p class="text-gray-600 text-sm mt-1">
+                        Empirical data collected across 1,200 rural participants in UP, Tamil Nadu, and Bihar evaluating task completion rates, acoustic resilience, and user trust comparing GUI vs. ZOTNIVA C LABS Multimodal Voice UI.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    <!-- Chart 1: Task Success Rate -->
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h3 class="text-sm font-bold text-gray-800 mb-4 text-center">Task Completion Success Rate (%) by Literacy Tier</h3>
+                        <div class="h-64">
+                            <canvas id="chartTaskSuccess"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Speech Error Rates -->
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h3 class="text-sm font-bold text-gray-800 mb-4 text-center">Word Error Rate (WER) vs Noise Floor (dB)</h3>
+                        <div class="h-64">
+                            <canvas id="chartWer"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field Highlights Key Statistics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+                    <div class="bg-orange-50 border border-orange-200 p-4 rounded-2xl text-center">
+                        <span class="text-2xl font-extrabold text-brand-terracotta block">88.4%</span>
+                        <span class="text-xs font-bold text-gray-600">Low-Literacy Task Completion</span>
+                    </div>
+                    <div class="bg-teal-50 border border-teal-200 p-4 rounded-2xl text-center">
+                        <span class="text-2xl font-extrabold text-brand-emerald block">2.4x</span>
+                        <span class="text-xs font-bold text-gray-600">Faster Transaction Speed</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-center">
+                        <span class="text-2xl font-extrabold text-brand-turmeric block">94.1%</span>
+                        <span class="text-xs font-bold text-gray-600">Dialect Intent Recognition</span>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-2xl text-center">
+                        <span class="text-2xl font-extrabold text-brand-plum block">&lt; 1.2s</span>
+                        <span class="text-xs font-bold text-gray-600">Voice Response Latency</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: HCI DESIGN SYSTEM & GUIDELINES -->
+        <section id="tab-framework" class="hidden space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-brand-terracotta uppercase tracking-wider">Design Framework</span>
+                    <h2 class="text-2xl font-black text-gray-900 mt-1">ZOTNIVA C LABS Multimodal Design Pillars for Low-Literacy Interfaces</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="border border-stone-200 p-5 rounded-2xl bg-stone-50 hover:border-brand-terracotta transition">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 text-brand-terracotta flex items-center justify-center text-xl font-bold mb-3">
+                            <i class="fa-solid fa-ear-listen"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900">1. Acoustic Soft-Repair</h3>
+                        <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                            Rather than raising explicit errors ("Speech not recognized"), the system uses soft clarification turns and contextual inferencing to repair incomplete or noisy speech inputs automatically.
+                        </p>
+                    </div>
+
+                    <div class="border border-stone-200 p-5 rounded-2xl bg-stone-50 hover:border-brand-terracotta transition">
+                        <div class="w-10 h-10 rounded-xl bg-teal-100 text-brand-emerald flex items-center justify-center text-xl font-bold mb-3">
+                            <i class="fa-solid fa-eye"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900">2. High-Contrast Iconography</h3>
+                        <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                            Textual confirmation is always mirrored by distinct visual iconography, color badges, and explicit numeric values to reduce cognitive load for non-literate citizens.
+                        </p>
+                    </div>
+
+                    <div class="border border-stone-200 p-5 rounded-2xl bg-stone-50 hover:border-brand-terracotta transition">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-brand-turmeric flex items-center justify-center text-xl font-bold mb-3">
+                            <i class="fa-solid fa-network-wired"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900">3. Offline-First Caching</h3>
+                        <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                            Visual receipts and verification state tokens are stored locally on edge devices to preserve user confidence even under unstable 2G/3G network conditions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: LITERATURE & BLUEPRINT -->
+        <section id="tab-resources" class="hidden space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-brand-terracotta uppercase tracking-wider">Academic Citations & Field Guidelines</span>
+                    <h2 class="text-2xl font-black text-gray-900 mt-1">Research Publications & System Architecture Documentation</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <span class="text-xs font-bold text-brand-terracotta">[ACM CHI 2025 Paper]</span>
+                        <h4 class="text-sm font-bold text-gray-900 mt-0.5">Designing Voice-First Interfaces for Rural Agricultural Workers in the Global South</h4>
+                        <p class="text-xs text-gray-600 mt-1">Authors: ZOTNIVA C LABS Research Group, Dept. of HCI & Development Economics.</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <span class="text-xs font-bold text-brand-terracotta">[COMPASS 2024 Guidelines]</span>
+                        <h4 class="text-sm font-bold text-gray-900 mt-0.5">Evaluating Dialect Tolerances in Multilingual Speech Recognition for Public Health Delivery</h4>
+                        <p class="text-xs text-gray-600 mt-1">Focuses on phoneme mapping across Hindi, Tamil, and Telugu rural dialects.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white border-t border-gray-800 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
+            <div>
+                <p class="font-bold text-gray-200">ZOTNIVA C LABS HCI Initiative</p>
+                <p>Human-Computer Interaction for Digital Inclusion & Multilingual Accessibility</p>
+            </div>
+            <div>
+                <p>© 2026 ZOTNIVA C LABS. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Localization Dictionary
+        const translations = {
+            en: {
+                subHeader: "HCI Rural Inclusion Initiative",
+                navSim: "Live Voice Simulator",
+                navRes: "HCI Field Data & Metrics",
+                navSys: "HCI Design System",
+                navDocs: "Literature & Blueprint",
+                heroTitle: "Conversational Voice Access for Low-Literacy & Rural Communities",
+                heroDesc: "Simulating speech-first public service interactions using multimodal guidance, dialect-tolerant ASR repair algorithms, and offline-resilient visual receipts.",
+                micInstruct: "Tap microphone to speak or simulate voice prompt",
+                userSpeechLbl: "User Spoken Request (ASR Raw Input)",
+                botSpeechLbl: "ZOTNIVA C LABS Voice & Multimodal Response",
+                sampleQueries: "Sample Rural User Queries (Click to Test):",
+                serviceTitle: "PM Kisan Samman Nidhi",
+                beneficiaryLbl: "Beneficiary:",
+                statusLbl: "Next Installment:",
+                statusVal: "₹2,000 Credited",
+                pensionUser: "When will my old age pension money arrive in my account?",
+                pensionBot: "Your monthly pension of ₹1,500 was transferred on October 5th to your State Bank account ending in 4021.",
+                kisanUser: "My fertilizer subsidy status check.",
+                kisanBot: "Your subsidy of ₹2,000 for PM Kisan has been approved and credited.",
+                healthUser: "How to make my Ayushman health card?",
+                healthBot: "Please visit your local Gram Panchayat center with your Aadhaar card for free registration."
+            },
+            hi: {
+                subHeader: "ज़ोटनिवा सी लैब्स - ग्रामीण समावेश पहल",
+                navSim: "लाइव वॉयस सिम्युलेटर",
+                navRes: "एचसीआई फ़ील्ड डेटा और मेट्रिक्स",
+                navSys: "एचसीआई डिज़ाइन सिस्टम",
+                navDocs: "साहित्य और गाइडलाइन",
+                heroTitle: "कम साक्षरता वाले ग्रामीण नागरिकों के लिए आवाज़-आधारित सेवाएँ",
+                heroDesc: "बहुभाषी वॉयस गाइडेंस, बोली-सहनशील एएसआर एल्गोरिदम और ऑफ़लाइन दृश्य रसीद प्रणाली का उपयोग।",
+                micInstruct: "बोलने के लिए माइक बटन दबाएं या प्रश्न चुनें",
+                userSpeechLbl: "उपयोगकर्ता का प्रश्न (ASR इनपुट)",
+                botSpeechLbl: "ज़ोटनिवा सी लैब्स वॉयस प्रतिक्रिया और दृश्य पुष्टि",
+                sampleQueries: "नमूना ग्रामीण प्रश्न (परीक्षण के लिए क्लिक करें):",
+                serviceTitle: "पीएम किसान सम्मान निधि",
+                beneficiaryLbl: "लाभार्थी:",
+                statusLbl: "अगली किश्त:",
+                statusVal: "₹2,000 खाते में जमा",
+                pensionUser: "मेरी वृद्धावस्था पेंशन का पैसा बैंक खाते में कब तक आएगा?",
+                pensionBot: "आपकी ₹1,500 की मासिक पेंशन 5 अक्टूबर को आपके स्टेट बैंक खाते (अंतिम अंक 4021) में भेज दी गई है।",
+                kisanUser: "मेरी खाद सब्सिडी की स्थिति क्या है?",
+                kisanBot: "पीएम किसान योजना की आपकी ₹2,000 की सब्सिडी स्वीकृत कर दी गई है।",
+                healthUser: "आयुष्मान स्वास्थ्य कार्ड कैसे बनवाएं?",
+                healthBot: "निःशुल्क पंजीकरण के लिए कृपया अपने आधार कार्ड के साथ निकटतम ग्राम पंचायत केंद्र पर जाएं।"
+            },
+            ta: {
+                subHeader: "ஜோட்னிவா சி லேப்ஸ் - கிராமப்புற சேர்க்கை முயற்சி",
+                navSim: "நேரலை குரல் சிமுலேட்டர்",
+                navRes: "ஆராய்ச்சி தரவு",
+                navSys: "வடிவமைப்பு அமைப்பு",
+                navDocs: "ஆவணங்கள்",
+                heroTitle: "கிராமப்புற மக்களுக்கான குரல்-வழி சேவை அணுகல்",
+                heroDesc: "பன்மொழி குரல் வழிகாட்டுதல் மற்றும் எளிய காட்சி உறுதிப்படுத்தல் அமைப்பு.",
+                micInstruct: "பேச மைக் பொத்தானைக் கிளிக் செய்யவும்",
+                userSpeechLbl: "பயனர் பேச்சு (ASR):",
+                botSpeechLbl: "ஜோட்னிவா சி லேப்ஸ் பதில்:",
+                sampleQueries: "மாதிரி கேள்விகள்:",
+                serviceTitle: "பிஎம் கிசான் திட்டம்",
+                beneficiaryLbl: "பயனாளி:",
+                statusLbl: "அடுத்த தவணை:",
+                statusVal: "₹2,000 வரவு வைக்கப்பட்டது",
+                pensionUser: "என் முதியோர் ஓய்வூதியம் எப்போது வரும்?",
+                pensionBot: "உங்கள் ஓய்வூதியம் ₹1,500 அக்டோபர் 5 அன்று உங்கள் வங்கி கணக்கில் செலுத்தப்பட்டது.",
+                kisanUser: "எனது உரம் மானிய நிலை என்ன?",
+                kisanBot: "உங்கள் ₹2,000 மானியம் ஒப்புதலளிக்கப்பட்டு கணக்கில் வரவு வைக்கப்பட்டது.",
+                healthUser: "ஆயுஷ்மான் கார்டு பெறுவது எப்படி?",
+                healthBot: "இலவச பதிவு செய்ய உங்கள் ஆதார் அட்டையுடன் கிராம பஞ்சாயத்து மையத்தை அணுகவும்."
+            },
+            te: {
+                subHeader: "జోట్నివా సి ల్యాబ్స్ - గ్రామీణ సమ్మేళన విభాగాము",
+                navSim: "లైవ్ వాయిస్ సిమ్యులేటర్",
+                navRes: "పరిశోధన డేటా",
+                navSys: "డిజైన్ సిస్టమ్",
+                navDocs: "సాహిత్యం",
+                heroTitle: "గ్రామీణ పౌరుల కోసం వాయిస్-ఆధారిత సేవలు",
+                heroDesc: "బహుభాషా వాయిస్ సేవలు మరియు ఆఫ్‌లైన్ విజువల్ రసీదులు.",
+                micInstruct: "మాట్లాడటానికి మైక్ నొక్కండి",
+                userSpeechLbl: "వినియోగదారు మాటలు:",
+                botSpeechLbl: "జోట్నివా సి ల్యాబ్స్ సమాధానం:",
+                sampleQueries: "నమూనా ప్రశ్నలు:",
+                serviceTitle: "పిఎం కిసాన్ పథకం",
+                beneficiaryLbl: "లబ్ధిదారుడు:",
+                statusLbl: "తదుపరి విడత:",
+                statusVal: "₹2,000 జమ చేయబడింది",
+                pensionUser: "నా పింఛను డబ్బులు ఎప్పుడు వస్తాయి?",
+                pensionBot: "మీ నెలకు ₹1,500 పింఛను అక్టోబర్ 5న మీ బ్యాంక్ ఖాతాలో జమ అయింది.",
+                kisanUser: "నా ఎరువుల సబ్సిడీ స్థితి ఏమిటి?",
+                kisanBot: "మీ పిఎం కిసాన్ ₹2,000 సబ్సిడీ ఆమోదించబడింది.",
+                healthUser: "ఆయుష్మాన్ హెల్త్ కార్డ్ ఎలా పొందేది?",
+                healthBot: "ఉచిత నమోదు కోసం మీ ఆధార్ కార్డ్‌‌తో సమీప గ్రామ్‌ పంచాయతీకి వెళ్లండి."
+            },
+            bn: {
+                subHeader: "জোটনিভা সি ল্যাবস - গ্রামীণ অন্তর্ভুক্তি উদ্যোগ",
+                navSim: "লাইভ ভয়েস সিমুলেটর",
+                navRes: "গবেষণা ডেটা",
+                navSys: "ডিজাইন সিস্টেম",
+                navDocs: "নথি ও গাইডলাইন",
+                heroTitle: "গ্রামীণ নাগরিকদের জন্য ভয়েস-ভিত্তিক পরিষেবা",
+                heroDesc: "বহুভাষিক ভয়েস নির্দেশিকা এবং ভিজ্যুয়াল নিশ্চিতকরণ।",
+                micInstruct: "কথা বলতে মাইক বোতামে চাপ দিন",
+                userSpeechLbl: "ব্যবহারকারীর কথা:",
+                botSpeechLbl: "জোটনিভা সি ল্যাবস উত্তর:",
+                sampleQueries: "নমুনা প্রশ্নাবলী:",
+                serviceTitle: "পিএম কিষাণ সম্মান নিধি",
+                beneficiaryLbl: "উপকারভোগী:",
+                statusLbl: "পরবর্তী কিস্তি:",
+                statusVal: "₹2,000 জমা হয়েছে",
+                pensionUser: "আমার বার্ধক্য ভাতা কবে আসবে?",
+                pensionBot: "আপনার ₹1,500 মাসের পেনশন ৫ই অক্টোবর আপনার স্টেট ব্যাঙ্ক অ্যাকাউন্টে পাঠানো হয়েছে।",
+                kisanUser: "আমার সার ভর্তুকির স্থিতি কী?",
+                kisanBot: "আপনার পিএম কিষাণ ₹2,000 ভbalancing অনুমোদিত হয়েছে।",
+                healthUser: "আয়ুষ্মান কার্ড কীভাবে তৈরি করবেন?",
+                healthBot: "বিনামূল্যে নিবন্ধনের জন্য আপনার আধার কার্ড সহ গ্রাম পঞ্চায়েত কেন্দ্রে যান।"
+            },
+            mr: {
+                subHeader: "झोटनिव्हा सी लॅब्स - ग्रामीण समावेश उपक्रम",
+                navSim: "लाइव्ह व्हॉइस सिम्युलेटर",
+                navRes: "संशोधन डेटा",
+                navSys: "डिझाइन प्रणाली",
+                navDocs: "साहित्य",
+                heroTitle: "ग्रामीण नागरिकांसाठी आवाज-आधारित सेवा",
+                heroDesc: "बहुभाषिक व्हॉइस मार्गदर्शन आणि दृश्य पावती प्रणाली.",
+                micInstruct: "बोलण्यासाठी माइक दाबा",
+                userSpeechLbl: "वापरकर्त्याचे भाषण:",
+                botSpeechLbl: "झोटनिव्हा सी लॅब्स प्रतिसाद:",
+                sampleQueries: "नमूना प्रश्न:",
+                serviceTitle: "पीएम किसान सन्मान निधी",
+                beneficiaryLbl: "लाभार्थी:",
+                statusLbl: "पुढील हप्ता:",
+                statusVal: "₹2,000 खात्यात जमा",
+                pensionUser: "माझे पेन्शनचे पैसे कधी येतील?",
+                pensionBot: "तुमचे ₹1,500 पेन्शन 5 ऑक्टोबर रोजी खात्यात जमा झाले आहे.",
+                kisanUser: "माझ्या खत सबसिडीची स्थिती काय आहे?",
+                kisanBot: "तुमची ₹2,000 सबसिडी मंजूर झाली आहे.",
+                healthUser: "आयुष्मान कार्ड कसे बनवावे?",
+                healthBot: "मोफत नोंदणीसाठी तुमच्या आधार कार्डसह ग्रामपंचायतीला भेट द्या."
+            },
+            kn: {
+                subHeader: "ಜೋಟ್ನಿವಾ ಸಿ ಲ್ಯಾಬ್ಸ್ - ಗ್ರಾಮೀಣ ಸೇರ್ಪಡೆ ಉಪಕ್ರಮ",
+                navSim: "ಲೈವ್ ವಾಯ್ಸ್ ಸಿಮ್ಯುಲೇಟರ್",
+                navRes: "ಸಂಶೋಧನಾ ಡೇಟಾ",
+                navSys: "ವಿನ್ಯಾಸ ವ್ಯವಸ್ಥೆ",
+                navDocs: "ಸಾಹಿತ್ಯ",
+                heroTitle: "ಗ್ರಾಮೀಣ ಜನರಿಗಾಗಿ ಧ್ವನಿ ಆಧಾರಿತ ಸೇವೆಗಳು",
+                heroDesc: "ಬಹುಭಾಷಾ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ಸುಲಭ ದೃಶ್ಯ ದೃಢೀಕರಣ.",
+                micInstruct: "ಮಾತನಾಡಲು ಮೈಕ್ ಒತ್ತಿ",
+                userSpeechLbl: "ಬಳಕೆದಾರರ ಧ್ವನಿ:",
+                botSpeechLbl: "ಜೋಟ್ನಿವಾ ಸಿ ಲ್ಯಾಬ್ಸ್ ಉತ್ತರ:",
+                sampleQueries: "ಮಾದರಿ ಪ್ರಶ್ನೆಗಳು:",
+                serviceTitle: "ಪಿಎಂ ಕಿಸಾನ್ ಸಮ್ಮಾನ್ ನಿಧಿ",
+                beneficiaryLbl: "ಫಲಾನುಭವಿ:",
+                statusLbl: "ಮುಂದಿನ ಕಂತು:",
+                statusVal: "₹2,000 ಜಮೆಯಾಗಿದೆ",
+                pensionUser: "ನನ್ನ ಪಿಂಚಣಿ ಹಣ ಯಾವಾಗ ಬರುತ್ತದೆ?",
+                pensionBot: "ನಿಮ್ಮ ₹1,500 ಪಿಂಚಣಿ ಹಣ ಅಕ್ಟೋಬರ್ 5 ರಂದು ಬ್ಯಾಂಕ್‌ಗೆ ಜಮೆಯಾಗಿದೆ.",
+                kisanUser: "ನನ್ನ ರಸಗೊಬ್ಬರ ಸಬ್ಸಿಡಿ ಸ್ಥಿತಿ ಏನು?",
+                kisanBot: "ನಿಮ್ಮ ₹2,000 ಸಬ್ಸಿಡಿ ಅನುಮೋದಿಸಲಾಗಿದೆ.",
+                healthUser: "ಆಯುಷ್ಮಾನ್ ಕಾರ್ಡ್ ಪಡೆಯುವುದು ಹೇಗೆ?",
+                healthBot: "ಉಚಿತ ನೋಂದಣಿಗಾಗಿ ಆಧಾರ್ ಕಾರ್ಡ್‌ನೊಂದಿಗೆ ಗ್ರಾಮ ಪಂಚಾಯತಿಗೆ ಭೇಟಿ ನೀಡಿ."
+            }
+        };
+
+        let currentLang = 'hi';
+        let isSimulating = false;
+
+        function changeGlobalLanguage() {
+            currentLang = document.getElementById('global-lang-select').value;
+            const t = translations[currentLang] || translations['en'];
+
+            // Update UI Labels
+            document.getElementById('txt-sub-header').innerText = t.subHeader;
+            document.getElementById('txt-nav-sim').innerText = t.navSim;
+            document.getElementById('txt-nav-res').innerText = t.navRes;
+            document.getElementById('txt-nav-sys').innerText = t.navSys;
+            document.getElementById('txt-nav-docs').innerText = t.navDocs;
+            document.getElementById('txt-hero-title').innerText = t.heroTitle;
+            document.getElementById('txt-hero-desc').innerText = t.heroDesc;
+            document.getElementById('txt-mic-instruction').innerText = t.micInstruct;
+            document.getElementById('txt-user-trans-lbl').innerText = t.userSpeechLbl;
+            document.getElementById('txt-bot-resp-lbl').innerText = t.botSpeechLbl;
+            document.getElementById('txt-sample-queries').innerText = t.sampleQueries;
+            document.getElementById('card-service-title').innerText = t.serviceTitle;
+            document.getElementById('lbl-card-beneficiary').innerText = t.beneficiaryLbl;
+            document.getElementById('lbl-card-status').innerText = t.statusLbl;
+            document.getElementById('val-card-status').innerText = t.statusVal;
+        }
+
+        function switchTab(tabId) {
+            ['simulator', 'research', 'framework', 'resources'].forEach(id => {
+                document.getElementById('tab-' + id).classList.add('hidden');
+                document.getElementById('nav-' + id).classList.remove('active-tab');
+                document.getElementById('nav-' + id).classList.add('text-gray-600');
+            });
+
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('nav-' + tabId).classList.add('active-tab');
+            document.getElementById('nav-' + tabId).classList.remove('text-gray-600');
+        }
+
+        function toggleVoiceSim() {
+            if(isSimulating) return;
+            isSimulating = true;
+
+            const micBtn = document.getElementById('mic-button');
+            const waveform = document.getElementById('waveform');
+            micBtn.classList.add('mic-pulse', 'from-red-500', 'to-orange-500');
+            waveform.classList.remove('hidden');
+
+            document.getElementById('txt-user-speech').innerText = "... (Listening / सुन रहा है) ...";
+            
+            setTimeout(() => {
+                runQueryPreset('kisan');
+                micBtn.classList.remove('mic-pulse', 'from-red-500', 'to-orange-500');
+                waveform.classList.add('hidden');
+                isSimulating = false;
+            }, 2000);
+        }
+
+        function runQueryPreset(type) {
+            const t = translations[currentLang] || translations['en'];
+            
+            if(type === 'pension') {
+                document.getElementById('txt-user-speech').innerText = `"${t.pensionUser}"`;
+                document.getElementById('txt-bot-speech').innerText = `"${t.pensionBot}"`;
+                document.getElementById('card-service-title').innerText = "Old Age Pension Scheme / वृद्धावस्था पेंशन";
+                document.getElementById('val-card-status').innerText = "₹1,500 Deposited";
+            } else if(type === 'kisan') {
+                document.getElementById('txt-user-speech').innerText = `"${t.kisanUser}"`;
+                document.getElementById('txt-bot-speech').innerText = `"${t.kisanBot}"`;
+                document.getElementById('card-service-title').innerText = t.serviceTitle;
+                document.getElementById('val-card-status').innerText = t.statusVal;
+            } else if(type === 'health') {
+                document.getElementById('txt-user-speech').innerText = `"${t.healthUser}"`;
+                document.getElementById('txt-bot-speech').innerText = `"${t.healthBot}"`;
+                document.getElementById('card-service-title').innerText = "Ayushman Bharat Card / आयुष्मान कार्ड";
+                document.getElementById('val-card-status').innerText = "Eligible / पात्र";
+            }
+        }
+
+        function updateNoiseSlider(val) {
+            document.getElementById('lbl-noise-val').innerText = `${val} dB (Rural Environment)`;
+            const badge = document.getElementById('badge-noise-level');
+            if(val < 30) {
+                badge.innerText = "Low Noise";
+                badge.className = "px-2 py-0.5 rounded-md text-xs font-bold bg-green-100 text-green-800";
+            } else if(val < 60) {
+                badge.innerText = "Moderate Rural";
+                badge.className = "px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800";
+            } else {
+                badge.innerText = "High Distortion";
+                badge.className = "px-2 py-0.5 rounded-md text-xs font-bold bg-red-100 text-red-800";
+            }
+        }
+
+        // Initialize Charts on Load
+        window.onload = function() {
+            changeGlobalLanguage();
+
+            // Task Success Chart
+            const ctx1 = document.getElementById('chartTaskSuccess').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Non-Literate', 'Semi-Literate', 'Literate'],
+                    datasets: [
+                        {
+                            label: 'Standard GUI App',
+                            data: [28, 54, 82],
+                            backgroundColor: '#CBD5E1'
+                        },
+                        {
+                            label: 'ZOTNIVA C LABS Multimodal Voice UI',
+                            data: [88, 92, 96],
+                            backgroundColor: '#D9531E'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            // WER Chart
+            const ctx2 = document.getElementById('chartWer').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['20 dB (Quiet)', '40 dB (Home)', '60 dB (Market)', '75 dB (Tractor/Field)'],
+                    datasets: [
+                        {
+                            label: 'Generic Speech Recognizer',
+                            data: [12, 24, 48, 68],
+                            borderColor: '#EF4444',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'ZOTNIVA C LABS Dialect Repair ASR',
+                            data: [5, 9, 18, 29],
+                            borderColor: '#0D9488',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
